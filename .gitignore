@@ -1,0 +1,39 @@
+# Backend (Spring Boot)
+target/
+*.iml
+*.class
+*.jar
+*.war
+*.log
+*.db
+*.mv.db
+*.h2.db
+.idea/
+*.swp
+
+# Frontend (React)
+node_modules/
+build/
+dist/
+npm-debug.log*
+
+# Environment files
+.env
+.env.*
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# IntelliJ/VSCode/IDE configs
+.vscode/
+*.code-workspace
+# Common test reports, coverage, etc.
+coverage/
+test-output/
+*.pid
+
+# Misc
+logs/
+tmp/
+*.orig
