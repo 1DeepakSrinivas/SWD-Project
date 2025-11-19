@@ -11,12 +11,6 @@ target/
 .idea/
 *.swp
 
-# Frontend (React)
-node_modules/
-build/
-dist/
-npm-debug.log*
-
 # Environment files
 .env
 .env.local
@@ -37,3 +31,4 @@ test-output/
 logs/
 tmp/
 *.orig
+*.pdf
