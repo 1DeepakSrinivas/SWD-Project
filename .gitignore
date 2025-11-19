@@ -19,7 +19,7 @@ npm-debug.log*
 
 # Environment files
 .env
-.env.*
+.env.local
 
 # OS/system files
 .DS_Store
