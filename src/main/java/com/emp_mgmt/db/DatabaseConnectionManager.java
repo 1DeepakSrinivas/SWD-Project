@@ -31,7 +31,6 @@ public class DatabaseConnectionManager {
     private static DatabaseConnectionManager instance;
     private final String jdbcUrl;
     private final String username;
-    private final String password;
 
     private DatabaseConnectionManager() {
         Map<String, String> envVars = loadEnvFile();
@@ -39,7 +38,7 @@ public class DatabaseConnectionManager {
         String port = envVars.getOrDefault("DB_PORT", DEFAULT_PORT);
         String dbName = envVars.getOrDefault("DB_NAME", DEFAULT_DB_NAME);
         this.username = envVars.getOrDefault("DB_USER", DEFAULT_USER);
-        this.password = envVars.getOrDefault("DB_PASS", DEFAULT_PASS);
+        //this.password = envVars.getOrDefault("DB_PASS", DEFAULT_PASS);
 
         this.jdbcUrl = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true", 
                 host, port, dbName);
@@ -68,6 +67,7 @@ public class DatabaseConnectionManager {
 
         for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
             try {
+                String password = "abc123";
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
                 if (isConnectionValid(connection)) {
                     return connection;
