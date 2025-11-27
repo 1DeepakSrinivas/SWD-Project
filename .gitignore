@@ -19,9 +19,12 @@ target/
 .DS_Store
 Thumbs.db
 
-# IntelliJ/VSCode/IDE configs
+# IDE configs
 .vscode/
 *.code-workspace
+.idea/
+.cursor/
+
 # Common test reports, coverage, etc.
 coverage/
 test-output/
