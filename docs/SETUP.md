@@ -1,143 +1,108 @@
 # Setup Guide
 
-Complete setup instructions for the Employee Management System from scratch.
+Complete setup instructions for the Employee Management System.
 
 ## Prerequisites
 
-Before starting, ensure you have the following installed:
+- Java 21 or higher
+- Maven 3.6 or higher
+- MySQL 8.0 or higher
 
-- **Java 21** or higher
-  - Check version: `java -version`
-  - Download: [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) or [OpenJDK](https://openjdk.org/)
-  
-- **Maven 3.6** or higher
-  - Check version: `mvn -version`
-  - Download: [Apache Maven](https://maven.apache.org/download.cgi)
-  
-- **MySQL 8.0** or higher
-  - Check version: `mysql --version`
-  - Download: [MySQL Community Server](https://dev.mysql.com/downloads/mysql/)
+## Step 1: Clone the Repository
 
-## Step 1: Clone or Download the Project
+Clone the repository:
 
-If using Git:
 ```bash
-git clone <repository-url>
+git clone https://github.com/1DeepakSrinivas/SWD-Project.git
 cd SWD-Project
+```
+
+### Step 1.1: Add Execute Permissions to the script:
+
+```bash
+chmod +x ./src/db/start-mysql.sh
 ```
 
 Or extract the project to a directory of your choice.
 
-## Step 2: Set Up MySQL Database
+## Step 2: Start MySQL Server
 
-### 2.1 Start MySQL Service
+Use the provided script to start MySQL:
+
+```bash
+./src/db/start-mysql.sh
+```
+
+The script reads configuration from `.env` file. If MySQL is already running, it will detect and skip startup.
+
+Alternative manual methods:
 
 **macOS (Homebrew):**
 ```bash
 brew services start mysql
 ```
 
-**Linux:**
-```bash
-sudo systemctl start mysql
-# or
-sudo service mysql start
-```
-
 **Windows:**
-Start MySQL from Services or use MySQL Workbench.
+Start MySQL from Services or MySQL Workbench.
 
-### 2.2 Create the Database
+## Step 3: Create Database
 
 Connect to MySQL and create the database:
 
 ```bash
-mysql -u root -p
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS emp_mgmt;"
 ```
 
-In MySQL prompt:
-```sql
-CREATE DATABASE IF NOT EXISTS emp_mgmt;
-EXIT;
-```
+## Step 4: Configure Environment
 
-### 2.3 Run Schema Script
-
-Create the database tables:
-
-```bash
-mysql -u root -p emp_mgmt < src/db/schema.sql
-```
-
-### 2.4 Load Sample Data (Optional)
-
-Populate the database with sample data:
-
-```bash
-mysql -u root -p emp_mgmt < src/db/sample-data.sql
-```
-
-## Step 3: Configure Environment Variables
-
-### 3.1 Create .env File
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-### 3.2 Edit .env File
-
-Open `.env` in a text editor and update with your MySQL credentials:
+Create `.env` file in project root:
 
 ```env
-# Database Configuration
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=emp_mgmt
-DB_USER=root <or your mysql username>
-DB_PASS= <your_mysql_password>
+DB_USER=root
+DB_PASS=your_password
 ```
 
-**Note:** The database name should be `emp_mgmt` (not `employee_management`).
+If password is empty, set `DB_PASS=`. Replace `your_password` with your MySQL root password.
 
-Replace `your_mysql_password` with your actual MySQL root password. If MySQL root has no password, leave `DB_PASS` empty:
+## Step 5: Initialize Database
 
-Also replace `or your mysql username>` with your username if it is not `root`
-```env
-DB_PASS=
+Run the database initialization class:
+
+```bash
+mvn compile exec:java -Dexec.mainClass="com.emp_mgmt.db.DatabaseInit"
 ```
 
-## Step 4: Build the Project
+This creates tables and loads sample data. Safe to run multiple times.
 
-### 4.1 Compile the Project
+Alternative: Run SQL scripts manually:
+
+```bash
+mysql -u root -p emp_mgmt < src/db/schema.sql
+mysql -u root -p emp_mgmt < src/db/sample-data.sql
+```
+
+## Step 6: Build Project
+
+Compile the project:
 
 ```bash
 mvn clean compile
 ```
 
-This will:
-- Download required dependencies (MySQL Connector/J, JUnit Jupiter)
-- Compile Java source files
-- Place compiled classes in `target/classes/`
-
-### 4.2 Package the Application
+Package the application:
 
 ```bash
 mvn clean package
 ```
 
-This will:
-- Compile the code
-- Run unit tests (if any)
-- Create a JAR file with dependencies in `target/` directory
+Output JAR: `target/employee-management-1.0.0.jar`
 
-The output JAR will be named: `employee-management-1.0.0.jar`
+## Step 7: Test Connection
 
-## Step 5: Test Database Connection
-
-Verify the database connection is working:
+Verify database connection:
 
 ```bash
 mvn exec:java -Dexec.mainClass="com.emp_mgmt.db.DatabaseConnectionManager"
@@ -146,24 +111,21 @@ mvn exec:java -Dexec.mainClass="com.emp_mgmt.db.DatabaseConnectionManager"
 Expected output:
 ```
 Attempting to connect to database...
-JDBC URL: jdbc:mysql://localhost:3306/emp_mgmt?useSSL=false&allowPublicKeyRetrieval=true
 Connection established successfully.
 Database connection test successful.
 Number of tables in current database: 6
 Connection closed.
 ```
 
-If you see this output, the setup is complete and working correctly.
+## Step 8: Verify Database Setup
 
-## Step 6: Verify Database Setup
-
-Verify tables and data were created:
+Check tables:
 
 ```bash
 mysql -u root -p emp_mgmt -e "SHOW TABLES;"
 ```
 
-You should see:
+Expected tables:
 - division
 - employees
 - employee_division
@@ -179,9 +141,37 @@ mysql -u root -p emp_mgmt -e "SELECT COUNT(*) AS employee_count FROM employees;"
 
 Should show 15 employees if sample data was loaded.
 
+## Database Configuration
+
+Connection parameters are read from `.env` file:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_HOST` | `localhost` | MySQL server hostname |
+| `DB_PORT` | `3306` | MySQL server port |
+| `DB_NAME` | `emp_mgmt` | Database name |
+| `DB_USER` | `root` | Database username |
+| `DB_PASS` | (empty) | Database password |
+
+If `.env` is missing or variables are unset, defaults are used.
+
+## Database Initialization
+
+The `DatabaseInit` class executes:
+- `src/db/schema.sql` - Creates tables with fail-safe logic
+- `src/db/sample-data.sql` - Loads sample data
+
+Features:
+- Checks if tables exist before creating
+- Handles duplicate entries gracefully
+- Uses transactions with rollback on failure
+
 ## Troubleshooting
 
-### Connection Errors
+**MySQL connection fails:**
+- Verify MySQL is running: `./src/db/start-mysql.sh`
+- Check `.env` credentials
+- Test connection: `mysql -u root -p`
 
 **Error: "Access denied for user 'root'@'localhost'"**
 - Verify MySQL password in `.env` file
@@ -189,48 +179,21 @@ Should show 15 employees if sample data was loaded.
 - Ensure `DB_USER` and `DB_PASS` are correct
 
 **Error: "Unknown database 'emp_mgmt'"**
-- Create the database: `mysql -u root -p -e "CREATE DATABASE emp_mgmt;"`
-- Run schema script: `mysql -u root -p emp_mgmt < src/db/schema.sql`
+- Create database: `mysql -u root -p -e "CREATE DATABASE emp_mgmt;"`
+- Run initialization: `mvn exec:java -Dexec.mainClass="com.emp_mgmt.db.DatabaseInit"`
 
 **Error: "No suitable driver found"**
 - Ensure MySQL Connector/J dependency is in `pom.xml`
 - Run `mvn clean compile` to download dependencies
 - Check Maven dependencies: `mvn dependency:tree`
 
-### Build Errors
+**Build errors:**
+- Verify Java version: `java -version`
+- Check Maven: `mvn -version`
+- Set JAVA_HOME if needed: `export JAVA_HOME=$(/usr/libexec/java_home)`
+- Clean and rebuild: `mvn clean compile`
 
-**Error: "JAVA_HOME is not set"**
-- Set JAVA_HOME environment variable
-- macOS/Linux: `export JAVA_HOME=$(/usr/libexec/java_home)`
-- Windows: Set in System Environment Variables
-
-**Error: "Maven not found"**
-- Add Maven to PATH
-- Verify installation: `mvn -version`
-
-### Database Script Errors
-
-**Error: "Table already exists"**
-- This is normal if re-running scripts
-- Schema script uses `DROP TABLE IF EXISTS`, so it's safe to re-run
-
-**Error: "Duplicate entry" in sample-data.sql**
-- Sample data uses `INSERT IGNORE`, so duplicates are skipped
-- Safe to re-run the script
-
-## Next Steps
-
-After successful setup:
-
-1. Review the project structure in `src/main/java/com/emp_mgmt/`
-2. Check database connection documentation: `docs/JDBC-CONNECTION.md`
-3. Explore the database schema: `src/db/schema.sql`
-4. Start developing your application components
-
-## Additional Resources
-
-- Project README: `docs/README.md`
-- JDBC Connection Guide: `docs/JDBC-CONNECTION.md`
-- Maven Documentation: https://maven.apache.org/guides/
-- MySQL Documentation: https://dev.mysql.com/doc/
+**Database script errors:**
+- "Table already exists" - Normal if re-running scripts, safe to ignore
+- "Duplicate entry" - Sample data uses `INSERT IGNORE`, safe to ignore
 
