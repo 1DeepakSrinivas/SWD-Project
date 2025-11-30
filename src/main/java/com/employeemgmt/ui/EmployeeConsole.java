@@ -157,7 +157,7 @@ public class EmployeeConsole {
         if (!ssn.isEmpty()) emp.setSsn(ssn);
         if (!email.isEmpty()) emp.setEmail(email);
 
-        boolean success = employeeService.updateEmployee(emp, 0, 0); // adjust if you support changing division/jobTitle here
+        boolean success = employeeService.updateEmployee(emp, 0, 0);
         System.out.println(success ? "Employee updated." : "Update failed.");
     }
 
