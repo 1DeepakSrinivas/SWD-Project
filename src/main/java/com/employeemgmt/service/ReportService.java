@@ -37,12 +37,10 @@ public class ReportService {
     // --------------------------------------------------------------------
 
     public Optional<Employee> getEmployee(int employeeId) throws SQLException {
-        // Your EmployeeDAO returns Optional<Employee>
         return employeeDAO.findById(employeeId);
     }
 
     public List<Payroll> getPayHistoryForEmployee(int employeeId) throws SQLException {
-        // Your PayrollDAO likely has this signature
         return payrollDAO.findByEmployeeId(employeeId);
     }
 
@@ -53,8 +51,6 @@ public class ReportService {
     private List<Payroll> getPayrollsForMonth(int year, int month) throws SQLException {
         List<Payroll> all = payrollDAO.findAll();
 
-        // Assuming Payroll has getPayPeriodEnd() or getPayPeriodStart() returning LocalDate.
-        // If your getters are named differently or return java.sql.Date, tweak this lambda.
         return all.stream()
                 .filter(p -> {
                     LocalDate date = p.getPayPeriodEnd(); // or getPayPeriodStart()

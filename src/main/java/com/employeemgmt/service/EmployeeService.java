@@ -28,14 +28,12 @@ public class EmployeeService {
 
     // --- Create employee ---
     public Employee addEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
-        // For now we just insert the employee; mapping to division/job title can be added later
         return employeeDAO.insert(employee);
     }
 
     // --- Lookups ---
 
     public Optional<Employee> findById(int id) throws SQLException {
-        // DAO already returns Optional<Employee>
         return employeeDAO.findById(id);
     }
 
@@ -50,7 +48,6 @@ public class EmployeeService {
     // --- Update / delete ---
 
     public boolean updateEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
-        // For now, just update core employee data
         return employeeDAO.update(employee);
     }
 
@@ -61,7 +58,6 @@ public class EmployeeService {
     // --- Salary update in range ---
 
     public int increaseSalaryInRange(BigDecimal min, BigDecimal max, BigDecimal percentage) throws SQLException {
-        // DAO expects: (double percentage, BigDecimal min, BigDecimal max)
         return employeeDAO.updateSalaryByPercentage(percentage.doubleValue(), min, max);
     }
 
