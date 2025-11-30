@@ -380,15 +380,22 @@ public class DAOConsole {
 
     private void handleSalaryUpdate() throws SQLException {
         System.out.println("\n--- Update Salary by Percentage (Transactional) ---");
-        System.out.print("Percentage (e.g., 5.0 for 5%): ");
-        double percentage = Double.parseDouble(scanner.nextLine());
-        System.out.print("Minimum amount: ");
-        BigDecimal min = new BigDecimal(scanner.nextLine());
-        System.out.print("Maximum amount: ");
-        BigDecimal max = new BigDecimal(scanner.nextLine());
+        
+        try {
+            System.out.print("Percentage (e.g., 5.0 for 5%): ");
+            double percentage = Double.parseDouble(scanner.nextLine());
+            
+            System.out.print("Minimum amount: ");
+            BigDecimal min = new BigDecimal(scanner.nextLine());
+            
+            System.out.print("Maximum amount: ");
+            BigDecimal max = new BigDecimal(scanner.nextLine());
 
-        int rowsAffected = employeeDAO.updateSalaryByPercentage(percentage, min, max);
-        System.out.println("Updated " + rowsAffected + " payroll record(s).");
+            int rowsAffected = employeeDAO.updateSalaryByPercentage(percentage, min, max);
+            System.out.println("Updated " + rowsAffected + " payroll record(s).");
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid input. Please enter valid numbers.");
+        }
     }
 
     private int readInt(String prompt) {
