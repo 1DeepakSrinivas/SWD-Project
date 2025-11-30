@@ -17,6 +17,12 @@ git clone https://github.com/1DeepakSrinivas/SWD-Project.git
 cd SWD-Project
 ```
 
+### Step 1.1: Add Execute Permissions to the script:
+
+```bash
+chmod +x ./src/db/start-mysql.sh
+```
+
 Or extract the project to a directory of your choice.
 
 ## Step 2: Start MySQL Server

@@ -1,5 +1,8 @@
 package com.emp_mgmt.ui;
 
+import com.emp_mgmt.service.EmployeeService;
+import com.emp_mgmt.service.ReportService;
+
 import java.util.Scanner;
 
 public class ConsoleUI {
@@ -8,12 +11,10 @@ public class ConsoleUI {
     private final EmployeeConsole employeeConsole;
     private final ReportConsole reportConsole;
 
-    public ConsoleUI(Scanner scanner,
-                     EmployeeConsole employeeConsole,
-                     ReportConsole reportConsole) {
+    public ConsoleUI(Scanner scanner, EmployeeService employeeService, ReportService reportService) {
         this.scanner = scanner;
-        this.employeeConsole = employeeConsole;
-        this.reportConsole = reportConsole;
+        this.employeeConsole = new EmployeeConsole(scanner, employeeService);
+        this.reportConsole = new ReportConsole(scanner, reportService, employeeService);
     }
 
     public void start() {
@@ -22,8 +23,10 @@ public class ConsoleUI {
             printMainMenu();
             int choice = readInt("Choose an option: ");
             switch (choice) {
-                case 1 -> employeeConsole.showMenu();
-                case 2 -> reportConsole.showMenu();
+                case 1 -> employeeConsole.searchEmployee();
+                case 2 -> employeeConsole.updateEmployee();
+                case 3 -> employeeConsole.updateSalaryByPercentage();
+                case 4 -> reportConsole.showMenu();
                 case 0 -> running = false;
                 default -> System.out.println("Invalid choice. Please try again.");
             }
@@ -31,9 +34,11 @@ public class ConsoleUI {
     }
 
     private void printMainMenu() {
-        System.out.println("\n===== EMPLOYEE MANAGEMENT SYSTEM =====");
-        System.out.println("1. Employee Management");
-        System.out.println("2. Reports");
+        System.out.println("\n===== MAIN MENU =====");
+        System.out.println("1. Search Employee");
+        System.out.println("2. Update Employee");
+        System.out.println("3. Update Salary by Percentage");
+        System.out.println("4. Reports");
         System.out.println("0. Exit");
     }
 

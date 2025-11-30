@@ -16,6 +16,15 @@ public class PayrollDAO {
      * Increases payroll.amount by given percentage for rows whose amount is within [min, max].
      */
     public int increaseAmountInRange(BigDecimal min, BigDecimal max, BigDecimal percent) throws SQLException {
+        if (percent == null) {
+            throw new IllegalArgumentException("percent must not be null");
+        }
+        if (min == null) {
+            throw new IllegalArgumentException("min must not be null");
+        }
+        if (max == null) {
+            throw new IllegalArgumentException("max must not be null");
+        }
         // percent 3.2 means +3.2%
         BigDecimal factor = percent.divide(BigDecimal.valueOf(100)).add(BigDecimal.ONE);
 

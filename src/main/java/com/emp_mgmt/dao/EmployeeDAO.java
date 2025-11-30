@@ -13,29 +13,52 @@ public class EmployeeDAO {
     private final DatabaseConnectionManager dbManager = DatabaseConnectionManager.getInstance();
 
     public Employee insert(Employee emp, int divisionId, int jobTitleId) throws SQLException {
+        if (divisionId <= 0) {
+            throw new SQLException("Division ID is required and must be greater than 0.");
+        }
+        if (jobTitleId <= 0) {
+            throw new SQLException("Job Title ID is required and must be greater than 0.");
+        }
+
         String sql = """
             INSERT INTO employees (first_name, last_name, SSN, email)
             VALUES (?, ?, ?, ?)
             """;
 
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            ps.setString(1, emp.getFirstName());
-            ps.setString(2, emp.getLastName());
-            ps.setString(3, emp.getSsn());
-            ps.setString(4, emp.getEmail());
-            ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    emp.setEmployeeId(rs.getInt(1));
+        try (Connection conn = dbManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                if (!divisionExists(conn, divisionId)) {
+                    throw new SQLException("Division ID " + divisionId + " does not exist.");
                 }
-            }
+                if (!jobTitleExists(conn, jobTitleId)) {
+                    throw new SQLException("Job Title ID " + jobTitleId + " does not exist.");
+                }
 
-            // map division and job title
-            upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
-            upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, emp.getFirstName());
+                ps.setString(2, emp.getLastName());
+                ps.setString(3, emp.getSsn());
+                ps.setString(4, emp.getEmail());
+                ps.executeUpdate();
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        emp.setEmployeeId(rs.getInt(1));
+                    }
+                }
+                ps.close();
+
+                upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
+                upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
 
         emp.setDivisionId(divisionId);
@@ -104,7 +127,8 @@ public class EmployeeDAO {
         try (Connection conn = dbManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            String like = "%" + fragment + "%";
+            String escapedFragment = escapeLikeWildcards(fragment);
+            String like = "%" + escapedFragment + "%";
             ps.setString(1, like);
             ps.setString(2, like);
 
@@ -118,30 +142,54 @@ public class EmployeeDAO {
     }
 
     public boolean update(Employee emp, int divisionId, int jobTitleId) throws SQLException {
+        if (divisionId <= 0) {
+            throw new SQLException("Division ID is required and must be greater than 0.");
+        }
+        if (jobTitleId <= 0) {
+            throw new SQLException("Job Title ID is required and must be greater than 0.");
+        }
+
         String sql = """
             UPDATE employees
             SET first_name = ?, last_name = ?, SSN = ?, email = ?
             WHERE employee_id = ?
             """;
 
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = dbManager.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setString(1, emp.getFirstName());
+                ps.setString(2, emp.getLastName());
+                ps.setString(3, emp.getSsn());
+                ps.setString(4, emp.getEmail());
+                ps.setInt(5, emp.getEmployeeId());
 
-            ps.setString(1, emp.getFirstName());
-            ps.setString(2, emp.getLastName());
-            ps.setString(3, emp.getSsn());
-            ps.setString(4, emp.getEmail());
-            ps.setInt(5, emp.getEmployeeId());
+                int rows = ps.executeUpdate();
+                ps.close();
 
-            int rows = ps.executeUpdate();
+                if (rows > 0) {
+                    if (!divisionExists(conn, divisionId)) {
+                        throw new SQLException("Division ID " + divisionId + " does not exist.");
+                    }
+                    if (!jobTitleExists(conn, jobTitleId)) {
+                        throw new SQLException("Job Title ID " + jobTitleId + " does not exist.");
+                    }
 
-            // update mapping tables (simplest: delete then insert)
-            clearEmployeeDivision(conn, emp.getEmployeeId());
-            clearEmployeeJobTitle(conn, emp.getEmployeeId());
-            upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
-            upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
+                    clearEmployeeDivision(conn, emp.getEmployeeId());
+                    clearEmployeeJobTitle(conn, emp.getEmployeeId());
+                    upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
+                    upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
+                }
 
-            return rows > 0;
+                conn.commit();
+                return rows > 0;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
         }
     }
 
@@ -211,5 +259,40 @@ public class EmployeeDAO {
             ps.setInt(1, employeeId);
             ps.executeUpdate();
         }
+    }
+
+    private boolean divisionExists(Connection conn, int divisionId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM division WHERE division_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, divisionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean jobTitleExists(Connection conn, int jobTitleId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM job_titles WHERE job_title_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, jobTitleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
+    private String escapeLikeWildcards(String input) {
+        if (input == null) {
+            return null;
+        }
+        return input.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
     }
 }

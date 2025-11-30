@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS employee_division (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (employee_id, division_id),
     FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE,
-    FOREIGN KEY (division_id) REFERENCES division(division_id) ON DELETE CASCADE
+    FOREIGN KEY (division_id) REFERENCES division(division_id) ON DELETE CASCADE,
+    UNIQUE KEY uk_employee_division (employee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS employee_job_titles (
@@ -54,7 +55,8 @@ CREATE TABLE IF NOT EXISTS employee_job_titles (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (employee_id, job_title_id),
     FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE,
-    FOREIGN KEY (job_title_id) REFERENCES job_titles(job_title_id) ON DELETE CASCADE
+    FOREIGN KEY (job_title_id) REFERENCES job_titles(job_title_id) ON DELETE CASCADE,
+    UNIQUE KEY uk_employee_job_title (employee_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Indexes for performance optimization

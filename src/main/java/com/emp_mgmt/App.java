@@ -3,8 +3,6 @@ package com.emp_mgmt;
 import com.emp_mgmt.service.EmployeeService;
 import com.emp_mgmt.service.ReportService;
 import com.emp_mgmt.ui.ConsoleUI;
-import com.emp_mgmt.ui.EmployeeConsole;
-import com.emp_mgmt.ui.ReportConsole;
 
 import java.util.Scanner;
 
@@ -16,13 +14,15 @@ public class App {
         EmployeeService employeeService = new EmployeeService();
         ReportService reportService = new ReportService();
 
-        EmployeeConsole employeeConsole = new EmployeeConsole(scanner, employeeService);
-        ReportConsole reportConsole = new ReportConsole(scanner, reportService, employeeService);
+        ConsoleUI console = new ConsoleUI(scanner, employeeService, reportService);
 
-        ConsoleUI consoleUI = new ConsoleUI(scanner, employeeConsole, reportConsole);
-        consoleUI.start();
+        System.out.println("========================================");
+        System.out.println("  EMPLOYEE MANAGEMENT SYSTEM");
+        System.out.println("========================================\n");
+
+        console.start();
 
         scanner.close();
-        System.out.println("Exiting Employee Management System. Goodbye.");
+        System.out.println("\nExiting Employee Management System. Goodbye.");
     }
 }

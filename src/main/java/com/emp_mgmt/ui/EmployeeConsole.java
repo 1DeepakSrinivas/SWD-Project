@@ -1,9 +1,13 @@
 package com.emp_mgmt.ui;
 
+import com.emp_mgmt.db.DatabaseConnectionManager;
 import com.emp_mgmt.model.Employee;
 import com.emp_mgmt.service.EmployeeService;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -19,163 +23,263 @@ public class EmployeeConsole {
         this.employeeService = employeeService;
     }
 
-    public void showMenu() {
-        boolean back = false;
-        while (!back) {
-            printEmployeeMenu();
-            int choice = readInt("Choose an option: ");
-            try {
-                switch (choice) {
-                    case 1 -> addEmployee();
-                    case 2 -> searchEmployee();
-                    case 3 -> updateEmployee();
-                    case 4 -> deleteEmployee();
-                    case 5 -> applySalaryIncrease();
-                    case 0 -> back = true;
-                    default -> System.out.println("Invalid choice. Try again.");
+    public void searchEmployee() {
+        try {
+            System.out.println("\n--- SEARCH EMPLOYEE ---");
+            System.out.println("Search by:");
+            System.out.println("1. Employee ID");
+            System.out.println("2. SSN");
+            System.out.println("3. Name");
+            System.out.println("0. Back");
+
+            int choice = readInt("Choose: ");
+
+            Optional<Employee> employee = Optional.empty();
+
+            switch (choice) {
+                case 1 -> {
+                    int id = readInt("Enter Employee ID: ");
+                    employee = employeeService.findById(id);
                 }
-            } catch (SQLException ex) {
-                System.out.println("Database error: " + ex.getMessage());
+                case 2 -> {
+                    String ssn = readSSN();
+                    employee = employeeService.findBySSN(ssn);
+                }
+                case 3 -> {
+                    String name = readNonEmpty("Enter name (first or last): ");
+                    List<Employee> employees = employeeService.findByName(name);
+                    if (employees.isEmpty()) {
+                        System.out.println("No employees found.");
+                        return;
+                    }
+                    if (employees.size() == 1) {
+                        employee = Optional.of(employees.get(0));
+                    } else {
+                        System.out.println("\nFound " + employees.size() + " employee(s):");
+                        for (int i = 0; i < employees.size(); i++) {
+                            System.out.println((i + 1) + ". " + employees.get(i).getFirstName() + " " +
+                                             employees.get(i).getLastName() + " (ID: " +
+                                             employees.get(i).getEmployeeId() + ")");
+                        }
+                        int select = readInt("\nSelect employee number: ");
+                        if (select > 0 && select <= employees.size()) {
+                            employee = Optional.of(employees.get(select - 1));
+                        } else {
+                            System.out.println("Invalid selection.");
+                            return;
+                        }
+                    }
+                }
+                case 0 -> {
+                    return;
+                }
+                default -> {
+                    System.out.println("Invalid choice.");
+                    return;
+                }
             }
+
+            if (employee.isPresent()) {
+                printEmployeeDetails(employee.get());
+            } else {
+                System.out.println("Employee not found.");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Database error: " + ex.getMessage());
         }
     }
 
-    private void printEmployeeMenu() {
-        System.out.println("\n----- EMPLOYEE MENU -----");
-        System.out.println("1. Add Employee");
-        System.out.println("2. Search Employee");
-        System.out.println("3. Update Employee");
-        System.out.println("4. Delete Employee");
-        System.out.println("5. Salary Increase (by payroll amount range)");
-        System.out.println("0. Back to Main Menu");
-    }
+    public void updateEmployee() {
+        try {
+            System.out.println("\n--- UPDATE EMPLOYEE ---");
+            System.out.println("Find employee by:");
+            System.out.println("1. Employee ID");
+            System.out.println("2. SSN");
+            System.out.println("0. Back");
 
-    private void addEmployee() throws SQLException {
-        System.out.println("\n--- ADD EMPLOYEE ---");
-        String firstName = readNonEmpty("First Name: ");
-        String lastName = readNonEmpty("Last Name: ");
-        String ssn = readSSN();
-        String email = readNonEmpty("Email: ");
+            int searchChoice = readInt("Choose: ");
+            Optional<Employee> opt = Optional.empty();
 
-        int divisionId = readInt("Division ID: ");
-        int jobTitleId = readInt("Job Title ID: ");
+            switch (searchChoice) {
+                case 1 -> {
+                    int id = readInt("Enter Employee ID: ");
+                    opt = employeeService.findById(id);
+                }
+                case 2 -> {
+                    String ssn = readSSN();
+                    opt = employeeService.findBySSN(ssn);
+                }
+                case 0 -> {
+                    return;
+                }
+                default -> {
+                    System.out.println("Invalid choice.");
+                    return;
+                }
+            }
 
-        Employee emp = new Employee();
-        emp.setFirstName(firstName);
-        emp.setLastName(lastName);
-        emp.setSsn(ssn);
-        emp.setEmail(email);
+            if (opt.isEmpty()) {
+                System.out.println("Employee not found.");
+                return;
+            }
 
-        Employee saved = employeeService.addEmployee(emp, divisionId, jobTitleId);
-        System.out.println("Employee created with ID: " + saved.getEmployeeId());
-    }
+            Employee emp = opt.get();
+            System.out.println("\nCurrent employee information:");
+            printEmployeeDetails(emp);
 
-    private void searchEmployee() throws SQLException {
-        System.out.println("\n--- SEARCH EMPLOYEE ---");
-        System.out.println("1. By Employee ID");
-        System.out.println("2. By SSN");
-        System.out.println("3. By Name (fragment)");
-        System.out.println("0. Back");
-        int choice = readInt("Choose: ");
+            System.out.println("\nEnter new values (press Enter to keep current value):");
+            String firstName = readOptional("First Name [" + emp.getFirstName() + "]: ");
+            String lastName = readOptional("Last Name [" + emp.getLastName() + "]: ");
+            String ssn = readOptional("SSN [" + emp.getSsn() + "]: ");
+            String email = readOptional("Email [" + emp.getEmail() + "]: ");
+            
+            String divisionName = emp.getDivisionId() != null ? getDivisionName(emp.getDivisionId()) : "none";
+            String jobTitleName = emp.getJobTitleId() != null ? getJobTitleName(emp.getJobTitleId()) : "none";
+            
+            String divisionStr = readOptional("Division ID [" +
+                    (emp.getDivisionId() == null ? "none" : emp.getDivisionId() + " (" + divisionName + ")") + "]: ");
+            String jobTitleStr = readOptional("Job Title ID [" +
+                    (emp.getJobTitleId() == null ? "none" : emp.getJobTitleId() + " (" + jobTitleName + ")") + "]: ");
 
-        switch (choice) {
-            case 1 -> searchById();
-            case 2 -> searchBySSN();
-            case 3 -> searchByName();
-            case 0 -> { /* back */ }
-            default -> System.out.println("Invalid choice.");
+            if (!firstName.isEmpty()) {
+                emp.setFirstName(firstName);
+            }
+            if (!lastName.isEmpty()) {
+                emp.setLastName(lastName);
+            }
+            if (!ssn.isEmpty()) {
+                emp.setSsn(ssn);
+            }
+            if (!email.isEmpty()) {
+                emp.setEmail(email);
+            }
+
+            int divisionId;
+            if (divisionStr.isEmpty()) {
+                if (emp.getDivisionId() == null) {
+                    System.out.println("Error: Division ID is required. Employee must have a division.");
+                    return;
+                }
+                divisionId = emp.getDivisionId();
+            } else {
+                divisionId = Integer.parseInt(divisionStr);
+            }
+
+            int jobTitleId;
+            if (jobTitleStr.isEmpty()) {
+                if (emp.getJobTitleId() == null) {
+                    System.out.println("Error: Job Title ID is required. Employee must have a job title.");
+                    return;
+                }
+                jobTitleId = emp.getJobTitleId();
+            } else {
+                jobTitleId = Integer.parseInt(jobTitleStr);
+            }
+
+            boolean success = employeeService.updateEmployee(emp, divisionId, jobTitleId);
+            if (success) {
+                System.out.println("\nEmployee updated successfully.");
+                System.out.println("Updated information:");
+                Employee updated = employeeService.findById(emp.getEmployeeId()).orElse(emp);
+                printEmployeeDetails(updated);
+            } else {
+                System.out.println("Update failed.");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Database error: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 
-    private void searchById() throws SQLException {
-        int id = readInt("Employee ID: ");
-        Optional<Employee> opt = employeeService.findById(id);
-        if (opt.isPresent()) {
-            printEmployee(opt.get());
-        } else {
-            System.out.println("No employee found with ID " + id);
+    public void updateSalaryByPercentage() {
+        try {
+            System.out.println("\n--- UPDATE SALARY BY PERCENTAGE ---");
+            System.out.println("This will increase payroll amounts within a specified range.");
+            System.out.println("Example: 3.2% increase for salaries >= $58,000 and < $105,000\n");
+
+            double percentage = readDouble("Enter percentage increase (e.g., 3.2 for 3.2%): ");
+            BigDecimal min = readBigDecimal("Minimum salary amount (inclusive): $");
+            BigDecimal max = readBigDecimal("Maximum salary amount (exclusive): $");
+
+            if (min.compareTo(max) >= 0) {
+                System.out.println("Error: Minimum must be less than maximum.");
+                return;
+            }
+
+            System.out.println("\nApplying " + percentage + "% increase to payroll amounts");
+            System.out.println("between $" + min + " (inclusive) and $" + max + " (exclusive)...");
+
+            int rowsAffected = employeeService.increaseSalaryInRange(min, max, BigDecimal.valueOf(percentage));
+            System.out.println("\nUpdated " + rowsAffected + " payroll record(s).");
+        } catch (SQLException ex) {
+            System.out.println("Database error: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 
-    private void searchBySSN() throws SQLException {
-        String ssn = readSSN();
-        Optional<Employee> opt = employeeService.findBySSN(ssn);
-        if (opt.isPresent()) {
-            printEmployee(opt.get());
-        } else {
-            System.out.println("No employee found with SSN " + ssn);
+    private void printEmployeeDetails(Employee e) {
+        System.out.println("\n========================================");
+        System.out.println("EMPLOYEE INFORMATION");
+        System.out.println("========================================");
+        System.out.println("Employee ID: " + e.getEmployeeId());
+        System.out.println("Name: " + e.getFirstName() + " " + e.getLastName());
+        System.out.println("SSN: " + e.getSsn());
+        System.out.println("Email: " + e.getEmail());
+        
+        if (e.getDivisionId() != null) {
+            String divisionName = getDivisionName(e.getDivisionId());
+            System.out.println("Division: " + (divisionName != null ? divisionName : "ID: " + e.getDivisionId()));
         }
-    }
-
-    private void searchByName() throws SQLException {
-        String fragment = readNonEmpty("Enter name fragment (first or last): ");
-        List<Employee> employees = employeeService.findByName(fragment);
-        if (employees.isEmpty()) {
-            System.out.println("No employees found.");
-        } else {
-            System.out.println("Found " + employees.size() + " employee(s):");
-            employees.forEach(this::printEmployeeOneLine);
+        
+        if (e.getJobTitleId() != null) {
+            String jobTitleName = getJobTitleName(e.getJobTitleId());
+            System.out.println("Job Title: " + (jobTitleName != null ? jobTitleName : "ID: " + e.getJobTitleId()));
         }
+        
+        System.out.println("========================================");
     }
 
-    private void updateEmployee() throws SQLException {
-        System.out.println("\n--- UPDATE EMPLOYEE ---");
-        int id = readInt("Employee ID to update: ");
-        Optional<Employee> opt = employeeService.findById(id);
-        if (opt.isEmpty()) {
-            System.out.println("No employee with that ID.");
-            return;
+    private String getDivisionName(Integer divisionId) {
+        if (divisionId == null) {
+            return null;
         }
-
-        Employee emp = opt.get();
-        System.out.println("Current data:");
-        printEmployee(emp);
-
-        System.out.println("\nEnter new values (leave blank to keep current).");
-        String firstName = readOptional("First Name [" + emp.getFirstName() + "]: ");
-        String lastName = readOptional("Last Name [" + emp.getLastName() + "]: ");
-        String ssn = readOptional("SSN (" + emp.getSsn() + "): ");
-        String email = readOptional("Email [" + emp.getEmail() + "]: ");
-        String divisionStr = readOptional("Division ID [" +
-                (emp.getDivisionId() == null ? "none" : emp.getDivisionId()) + "]: ");
-        String jobTitleStr = readOptional("Job Title ID [" +
-                (emp.getJobTitleId() == null ? "none" : emp.getJobTitleId()) + "]: ");
-
-        if (!firstName.isEmpty()) emp.setFirstName(firstName);
-        if (!lastName.isEmpty()) emp.setLastName(lastName);
-        if (!ssn.isEmpty()) emp.setSsn(ssn);
-        if (!email.isEmpty()) emp.setEmail(email);
-
-        Integer divisionId = divisionStr.isEmpty() ? emp.getDivisionId() : Integer.parseInt(divisionStr);
-        Integer jobTitleId = jobTitleStr.isEmpty() ? emp.getJobTitleId() : Integer.parseInt(jobTitleStr);
-
-        boolean success = employeeService.updateEmployee(emp, divisionId, jobTitleId);
-        System.out.println(success ? "Employee updated." : "Update failed.");
-    }
-
-    private void deleteEmployee() throws SQLException {
-        System.out.println("\n--- DELETE EMPLOYEE ---");
-        int id = readInt("Employee ID to delete: ");
-        String confirm = readNonEmpty("Are you sure you want to delete this employee? (Y/N): ");
-        if (!confirm.equalsIgnoreCase("Y")) {
-            System.out.println("Delete cancelled.");
-            return;
+        String sql = "SELECT name FROM division WHERE division_id = ?";
+        DatabaseConnectionManager dbManager = DatabaseConnectionManager.getInstance();
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, divisionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        } catch (SQLException ex) {
+            return null;
         }
-        boolean success = employeeService.deleteEmployee(id);
-        System.out.println(success ? "Employee deleted." : "Delete failed.");
+        return null;
     }
 
-    private void applySalaryIncrease() throws SQLException {
-        System.out.println("\n--- SALARY / PAY INCREASE (RANGE) ---");
-        BigDecimal min = readBigDecimal("Minimum payroll amount (inclusive): ");
-        BigDecimal max = readBigDecimal("Maximum payroll amount (inclusive): ");
-        BigDecimal pct = readBigDecimal("Percentage increase (e.g., 3.2 for 3.2%): ");
-
-        int updated = employeeService.increaseSalaryInRange(min, max, pct);
-        System.out.println("Updated " + updated + " payroll row(s).");
+    private String getJobTitleName(Integer jobTitleId) {
+        if (jobTitleId == null) {
+            return null;
+        }
+        String sql = "SELECT title FROM job_titles WHERE job_title_id = ?";
+        DatabaseConnectionManager dbManager = DatabaseConnectionManager.getInstance();
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, jobTitleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("title");
+                }
+            }
+        } catch (SQLException ex) {
+            return null;
+        }
+        return null;
     }
-
-    // ---------- helpers ----------
 
     private int readInt(String prompt) {
         while (true) {
@@ -185,6 +289,18 @@ public class EmployeeConsole {
                 return Integer.parseInt(line);
             } catch (NumberFormatException ex) {
                 System.out.println("Please enter a valid integer.");
+            }
+        }
+    }
+
+    private double readDouble(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String line = scanner.nextLine().trim();
+            try {
+                return Double.parseDouble(line);
+            } catch (NumberFormatException ex) {
+                System.out.println("Please enter a valid number.");
             }
         }
     }
@@ -205,8 +321,10 @@ public class EmployeeConsole {
         while (true) {
             System.out.print(prompt);
             String line = scanner.nextLine().trim();
-            if (!line.isEmpty()) return line;
-            System.out.println("Value is required.");
+            if (!line.isEmpty()) {
+                return line;
+            }
+            System.out.println("This field is required.");
         }
     }
 
@@ -217,29 +335,11 @@ public class EmployeeConsole {
 
     private String readSSN() {
         while (true) {
-            String ssn = readNonEmpty("SSN (9 digits, no dashes): ");
-            if (ssn.matches("\\d{9}")) return ssn;
+            String ssn = readNonEmpty("Enter SSN (9 digits, no dashes): ");
+            if (ssn.matches("\\d{9}")) {
+                return ssn;
+            }
             System.out.println("SSN must be exactly 9 digits, no dashes.");
         }
-    }
-
-    private void printEmployee(Employee e) {
-        System.out.println("----------------------------------------");
-        System.out.println("ID: " + e.getEmployeeId());
-        System.out.println("Name: " + e.getFirstName() + " " + e.getLastName());
-        System.out.println("SSN: " + e.getSsn());
-        System.out.println("Email: " + e.getEmail());
-        System.out.println("Division ID: " + e.getDivisionId());
-        System.out.println("Job Title ID: " + e.getJobTitleId());
-        System.out.println("----------------------------------------");
-    }
-
-    private void printEmployeeOneLine(Employee e) {
-        System.out.printf("ID=%d | %s %s | SSN=%s | Email=%s%n",
-                e.getEmployeeId(),
-                e.getFirstName(),
-                e.getLastName(),
-                e.getSsn(),
-                e.getEmail());
     }
 }
