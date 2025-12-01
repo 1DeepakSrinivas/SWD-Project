@@ -35,19 +35,19 @@ public class EmployeeDAO {
                     throw new SQLException("Job Title ID " + jobTitleId + " does not exist.");
                 }
 
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, emp.getFirstName());
-                ps.setString(2, emp.getLastName());
-                ps.setString(3, emp.getSsn());
-                ps.setString(4, emp.getEmail());
-                ps.executeUpdate();
+                try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, emp.getFirstName());
+                    ps.setString(2, emp.getLastName());
+                    ps.setString(3, emp.getSsn());
+                    ps.setString(4, emp.getEmail());
+                    ps.executeUpdate();
 
-                try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) {
-                        emp.setEmployeeId(rs.getInt(1));
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            emp.setEmployeeId(rs.getInt(1));
+                        }
                     }
                 }
-                ps.close();
 
                 upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
                 upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
@@ -158,32 +158,32 @@ public class EmployeeDAO {
         try (Connection conn = dbManager.getConnection()) {
             conn.setAutoCommit(false);
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ps.setString(1, emp.getFirstName());
-                ps.setString(2, emp.getLastName());
-                ps.setString(3, emp.getSsn());
-                ps.setString(4, emp.getEmail());
-                ps.setInt(5, emp.getEmployeeId());
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, emp.getFirstName());
+                    ps.setString(2, emp.getLastName());
+                    ps.setString(3, emp.getSsn());
+                    ps.setString(4, emp.getEmail());
+                    ps.setInt(5, emp.getEmployeeId());
 
-                int rows = ps.executeUpdate();
-                ps.close();
+                    int rows = ps.executeUpdate();
 
-                if (rows > 0) {
-                    if (!divisionExists(conn, divisionId)) {
-                        throw new SQLException("Division ID " + divisionId + " does not exist.");
+                    if (rows > 0) {
+                        if (!divisionExists(conn, divisionId)) {
+                            throw new SQLException("Division ID " + divisionId + " does not exist.");
+                        }
+                        if (!jobTitleExists(conn, jobTitleId)) {
+                            throw new SQLException("Job Title ID " + jobTitleId + " does not exist.");
+                        }
+
+                        clearEmployeeDivision(conn, emp.getEmployeeId());
+                        clearEmployeeJobTitle(conn, emp.getEmployeeId());
+                        upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
+                        upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
                     }
-                    if (!jobTitleExists(conn, jobTitleId)) {
-                        throw new SQLException("Job Title ID " + jobTitleId + " does not exist.");
-                    }
 
-                    clearEmployeeDivision(conn, emp.getEmployeeId());
-                    clearEmployeeJobTitle(conn, emp.getEmployeeId());
-                    upsertEmployeeDivision(conn, emp.getEmployeeId(), divisionId);
-                    upsertEmployeeJobTitle(conn, emp.getEmployeeId(), jobTitleId);
+                    conn.commit();
+                    return rows > 0;
                 }
-
-                conn.commit();
-                return rows > 0;
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;
