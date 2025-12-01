@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.employeeemgmt.ui.fx.controller.EmployeeSearchController">
+
+    <top>
+        <HBox spacing="10" padding="10" alignment="CENTER_LEFT">
+            <Label text="Search:"/>
+            <TextField fx:id="txtSearch" promptText="Enter name / SSN / ID" HBox.hgrow="ALWAYS"/>
+            <ComboBox fx:id="cmbMode" prefWidth="130"/>
+            <Button text="Search" onAction="#onSearch"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="table">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
+                <TableColumn fx:id="colFirst" text="First" prefWidth="120"/>
+                <TableColumn fx:id="colLast" text="Last" prefWidth="120"/>
+                <TableColumn fx:id="colSsn" text="SSN" prefWidth="100"/>
+                <TableColumn fx:id="colEmail" text="Email" prefWidth="200"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT" padding="10">
+            <Button text="Edit Selected" onAction="#onEdit"/>
+            <Button text="Back" onAction="#onBack"/>
+        </HBox>
+    </bottom>
+</BorderPane>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.employeeemgmt.ui.fx.controller.ReportsController"
+      spacing="12" padding="12">
+
+    <HBox spacing="10">
+        <Label text="Year:"/>
+        <ComboBox fx:id="cmbYear"/>
+        <Label text="Month:"/>
+        <ComboBox fx:id="cmbMonth"/>
+        <Button text="Run" onAction="#onRun"/>
+    </HBox>
+
+    <TitledPane text="Total Pay by Job Title" expanded="true">
+        <TableView fx:id="tblJob">
+            <columns>
+                <TableColumn fx:id="colJobName" text="Job Title" prefWidth="200"/>
+                <TableColumn fx:id="colJobTotal" text="Total Pay" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </TitledPane>
+
+    <TitledPane text="Total Pay by Division" expanded="true">
+        <TableView fx:id="tblDiv">
+            <columns>
+                <TableColumn fx:id="colDivName" text="Division" prefWidth="200"/>
+                <TableColumn fx:id="colDivTotal" text="Total Pay" prefWidth="150"/>
+            </columns>
+        </TableView>
+    </TitledPane>
+
+    <Button text="Back" onAction="#onBack" alignment="CENTER_RIGHT"/>
+</VBox>

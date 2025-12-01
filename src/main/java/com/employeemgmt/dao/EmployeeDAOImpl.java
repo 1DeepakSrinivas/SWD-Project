@@ -1,8 +1,5 @@
 package com.employeemgmt.dao;
 
-import com.emp_mgmt.db.DatabaseConnectionManager;
-import com.employeemgmt.model.Employee;
-
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +9,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.employeemgmt.db.DatabaseConnectionManager;
+import com.employeemgmt.model.Employee;
 
 public class EmployeeDAOImpl implements EmployeeDAO {
 

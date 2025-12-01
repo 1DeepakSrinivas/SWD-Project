@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<GridPane xmlns="http://javafx.com/javafx"
+          xmlns:fx="http://javafx.com/fxml"
+          fx:controller="com.employeeemgmt.ui.fx.controller.EmployeeFormController"
+          hgap="12" vgap="10" padding="15">
+
+    <Label text="First Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtFirst" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+    <Label text="Last Name:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtLast" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+    <Label text="SSN (no dashes):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtSSN" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+    <Label text="Email:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtEmail" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+    <Label text="Division:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="cmbDivision" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+    <Label text="Job Title:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="cmbJob" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+    <HBox spacing="10" GridPane.rowIndex="6" GridPane.columnSpan="2" alignment="CENTER_RIGHT">
+        <Button text="Save" onAction="#onSave"/>
+        <Button text="Cancel" onAction="#onCancel"/>
+    </HBox>
+</GridPane>
