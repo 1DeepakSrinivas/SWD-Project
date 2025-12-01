@@ -1,4 +1,4 @@
-package com.emp_mgmt.db;
+package com.employeemgmt.db;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.employeemgmt.ui.fx.controller.EmployeeDetailController"
+      spacing="10" padding="10">
+
+    <HBox spacing="10">
+        <Label text="ID:"/>
+        <Label fx:id="lblId"/>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Name:"/>
+        <Label fx:id="lblName"/>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="SSN:"/>
+        <Label fx:id="lblSsn"/>
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Email:"/>
+        <Label fx:id="lblEmail"/>
+    </HBox>
+
+    <Label text="Pay Statement History" style="-fx-font-weight: bold;"/>
+
+    <TableView fx:id="tblPayroll" prefHeight="200">
+        <columns>
+            <TableColumn fx:id="colPayrollId" text="ID" prefWidth="60"/>
+            <TableColumn fx:id="colPeriod" text="Pay Period" prefWidth="200"/>
+            <TableColumn fx:id="colAmount" text="Amount" prefWidth="120"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Edit" onAction="#onEdit"/>
+        <Button text="Back" onAction="#onBack"/>
+    </HBox>
+</VBox>

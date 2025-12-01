@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.employeeemgmt.ui.fx.controller.MainMenuController"
+      alignment="CENTER" spacing="12" prefWidth="450" prefHeight="340">
+
+    <Label text="Employee Management System" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+
+    <Button text="Search Employees" onAction="#onSearchEmployees" maxWidth="200"/>
+    <Button text="Add New Employee" onAction="#onAddEmployee" maxWidth="200"/>
+    <Button text="Monthly Reports" onAction="#onReports" maxWidth="200"/>
+    <Button text="Salary Adjustment Tool" onAction="#onSalaryAdjust" maxWidth="200"/>
+
+    <Separator prefWidth="260"/>
+
+    <Button text="Exit Application" onAction="#onExit" style="-fx-background-color: #c23b3b; -fx-text-fill:white;" maxWidth="200"/>
+</VBox>

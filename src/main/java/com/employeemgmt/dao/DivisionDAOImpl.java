@@ -1,8 +1,5 @@
 package com.employeemgmt.dao;
 
-import com.emp_mgmt.db.DatabaseConnectionManager;
-import com.employeemgmt.model.Division;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,6 +8,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.employeemgmt.db.DatabaseConnectionManager;
+import com.employeemgmt.model.Division;
 
 public class DivisionDAOImpl implements DivisionDAO {
 
