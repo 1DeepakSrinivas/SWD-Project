@@ -1,7 +1,10 @@
 package com.employeemgmt.ui;
 
+import com.employeemgmt.dao.*;
+import com.employeemgmt.service.EmployeeService;
+import com.employeemgmt.service.ReportService;
 import com.employeemgmt.ui.fx.controller.NavigationManager;
-
+import com.employeemgmt.ui.fx.controller.ServiceRegistry;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -9,6 +12,34 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Build DAO layer (your existing backend)
+        EmployeeDAO employeeDAO = new EmployeeDAOImpl();
+        DivisionDAO divisionDAO = new DivisionDAOImpl();
+        JobTitleDAO jobTitleDAO = new JobTitleDAOImpl();
+        PayrollDAO payrollDAO = new PayrollDAOImpl();
+        EmployeeDivisionDAO employeeDivisionDAO = new EmployeeDivisionDAOImpl();
+        EmployeeJobTitleDAO employeeJobTitleDAO = new EmployeeJobTitleDAOImpl();
+
+        // Build services
+        EmployeeService employeeService = new EmployeeService(
+                employeeDAO,
+                divisionDAO,
+                jobTitleDAO
+        );
+
+        ReportService reportService = new ReportService(
+                employeeDAO,
+                divisionDAO,
+                jobTitleDAO,
+                payrollDAO,
+                employeeDivisionDAO,
+                employeeJobTitleDAO
+        );
+
+        // Register them for controllers to use
+        ServiceRegistry.init(employeeService, reportService);
+
+        // Start UI
         NavigationManager.init(stage);
     }
 

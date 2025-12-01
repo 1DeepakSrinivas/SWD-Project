@@ -39,6 +39,11 @@ public class EmployeeFormController extends BaseController {
         txtSSN.setText(emp.getSsn());
     }
 
+    public void editEmployee(Employee emp) {
+        setEmployee(emp);
+    }
+
+
     @FXML
     private void onSave(){
         try{

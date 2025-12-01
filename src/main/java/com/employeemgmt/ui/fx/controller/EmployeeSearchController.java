@@ -71,7 +71,7 @@ public class EmployeeSearchController extends BaseController {
     private void onEdit(){
         Employee emp = table.getSelectionModel().getSelectedItem();
         if(emp==null){ info("Select a record first"); return; }
-        NavigationManager.showAddEmployee(); // routed to form, will load existing
+        NavigationManager.showAddEmployee();
     }
 
     @FXML

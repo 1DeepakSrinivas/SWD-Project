@@ -1,72 +1,118 @@
 package com.employeemgmt.ui.fx.controller;
 
-import java.net.URL;
-
 import com.employeemgmt.model.Employee;
-
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.net.URL;
+
 public class NavigationManager {
 
     private static Stage stage;
 
-    // Called once inside App.start()
-    public static void init(Stage primary) {
-        stage = primary;
+    // FXML files are in src/main/resources/
+    private static final String BASE_FXML_PATH = "/com/employeemgmt/ui/fx/";
+
+    public static void init(Stage primaryStage) {
+        stage = primaryStage;
         showMainMenu();
+        stage.show();
     }
 
-    private static void go(String fxml) {
+    private static void show(String fxmlFile, String title) {
         try {
-            URL view = NavigationManager.class.getClassLoader()
-                  .getResource("com/employeemgmt/ui/fx/" + fxml);
-
-            if (view == null) {
-                System.err.println("FXML NOT FOUND → " + fxml);
-                throw new NullPointerException("Missing FXML: " + fxml);
+            URL resource = NavigationManager.class.getResource(BASE_FXML_PATH + fxmlFile);
+            if (resource == null) {
+                throw new IllegalStateException("FXML not found: " + BASE_FXML_PATH + fxmlFile);
             }
-
-            Parent root = FXMLLoader.load(view);   // <-- fixed static reference
-            stage.setScene(new Scene(root));
-            stage.show();
-
-        } catch (Exception e) {
-            System.err.println("NAVIGATION ERROR → " + fxml);
-            e.printStackTrace();
+            FXMLLoader loader = new FXMLLoader(resource);
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            stage.setTitle(title);
+            stage.setScene(scene);
+        } catch (IOException e) {
+            error("Failed to load FXML: " + fxmlFile, e);
         }
     }
 
-    // ==============================
-    // MAIN SCREENS
-    // ==============================
-    
-    public static void showMainMenu()       { go("main_menu.fxml"); }
-    public static void showEmployeeSearch() { go("employee_search.fxml"); }
-    public static void showEmployeeDetail() { go("employee_detail.fxml"); }
-    public static void showAddEmployee()    { go("employee_form.fxml"); }
-    public static void showReports()        { go("reports.fxml"); }
-    public static void showAdjust()         { go("salary_adjustment.fxml"); }
 
-    // ==============================
-    // METHODS YOUR CONTROLLERS CALL
-    // ==============================
+    // --------- Screens ----------
 
-    public static void showSearch() { showEmployeeSearch(); }
-
-    // "Edit employee" opens same form but later we preload fields
-    public static void showEmployeeFormEdit(Employee emp) {
-        // TODO: pass employee object through static holder or FXMLLoader controller injection
-        showAddEmployee();
+    public static void showMainMenu() {
+        show("main_menu.fxml", "Employee Management - Main Menu");
     }
 
-    // ==============================
-    // ERROR HANDLER
-    // ==============================
+    public static void showSearch() {
+        show("employee_search.fxml", "Employee Management - Search");
+    }
+
+    public static void showAddEmployee() {
+        show("employee_from.fxml", "Employee Management - Add / Edit Employee");
+    }
+
+    public static void showReports() {
+        show("reports.fxml", "Employee Management - Reports");
+    }
+
+    public static void showAdjust() {
+        show("salary_adjustment.fxml", "Employee Management - Salary Adjustment");
+    }
+
+    public static void showEmployeeDetail(Employee employee) {
+        try {
+            URL resource = NavigationManager.class.getResource(BASE_FXML_PATH + "employee_detail.fxml");
+            if (resource == null) {
+                throw new IllegalStateException("FXML not found: " + BASE_FXML_PATH + "employee_detail.fxml");
+            }
+
+            FXMLLoader loader = new FXMLLoader(resource);
+            Parent root = loader.load();
+
+            EmployeeDetailController controller = loader.getController();
+            controller.setEmployee(employee);
+
+            Scene scene = new Scene(root);
+            stage.setTitle("Employee Detail");
+            stage.setScene(scene);
+        } catch (IOException e) {
+            error("Failed to load employee_detail.fxml", e);
+        }
+    }
+
+    public static void showEmployeeSearch() {
+        showSearch();
+    }
+
+    public static void showEmployeeFormEdit(Employee employee) {
+        try {
+            URL resource = NavigationManager.class.getResource(BASE_FXML_PATH + "employee_from.fxml");
+            if (resource == null) {
+                throw new IllegalStateException("FXML not found: " + BASE_FXML_PATH + "employee_from.fxml");
+            }
+
+            FXMLLoader loader = new FXMLLoader(resource);
+            Parent root = loader.load();
+
+            EmployeeFormController controller = loader.getController();
+            controller.editEmployee(employee);
+
+            Scene scene = new Scene(root);
+            stage.setTitle("Edit Employee");
+            stage.setScene(scene);
+        } catch (IOException e) {
+            error("Failed to load employee_from.fxml for edit", e);
+        }
+    }
+
+    // --------- Error helper ----------
+
     public static void error(String msg, Exception e) {
-        System.err.println("\n❗ NAVIGATION ERROR: " + msg + "\n");
-        if(e!=null) e.printStackTrace();
+        System.err.println("\n[Navigation Error] " + msg + "\n");
+        if (e != null) {
+            e.printStackTrace();
+        }
     }
 }
