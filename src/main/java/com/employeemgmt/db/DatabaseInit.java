@@ -314,7 +314,7 @@ public class DatabaseInit {
             String afterIndex = createStatement.substring(indexIndex + 5).trim();
             // Extract index name (until space or ON keyword)
             int onIndex = -1;
-            for (int i = 0; i < afterIndex.length() - 1; i++) {
+            for (int i = 0; i <= afterIndex.length() - 2; i++) {
                 if (afterIndex.substring(i, i + 2).toUpperCase().equals("ON")) {
                     onIndex = i;
                     break;
