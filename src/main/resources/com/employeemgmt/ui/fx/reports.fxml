@@ -32,19 +32,19 @@
 
     <Label text="Total Pay by Job Title:" style="-fx-font-weight: bold;"/>
 
-    <TableView fx:id="tblByJob" prefHeight="160">
+    <TableView fx:id="tblJob" prefHeight="160">
         <columns>
-            <TableColumn fx:id="colJobTitle" text="Job Title" prefWidth="250"/>
+            <TableColumn fx:id="jobNameColumn" text="Job Title" prefWidth="250"/>
             <TableColumn fx:id="colJobTotal" text="Total Pay" prefWidth="150"/>
         </columns>
     </TableView>
 
     <Label text="Total Pay by Division:" style="-fx-font-weight: bold;"/>
 
-    <TableView fx:id="tblByDivision" prefHeight="160">
+    <TableView fx:id="tblDiv" prefHeight="160">
         <columns>
-            <TableColumn fx:id="colDivision" text="Division" prefWidth="250"/>
-            <TableColumn fx:id="colDivisionTotal" text="Total Pay" prefWidth="150"/>
+            <TableColumn fx:id="colDivName" text="Division" prefWidth="250"/>
+            <TableColumn fx:id="colDivTotal" text="Total Pay" prefWidth="150"/>
         </columns>
     </TableView>
 

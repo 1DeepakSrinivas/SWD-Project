@@ -26,6 +26,45 @@ public class DatabaseInit {
     }
 
     /**
+     * Initializes the database only if needed (tables don't exist or are empty).
+     * This is safe to call on every application startup.
+     * 
+     * @return true if initialization was successful or not needed, false if there was an error
+     */
+    public boolean initializeIfNeeded() {
+        Connection connection = null;
+        try {
+            connection = dbManager.getConnection();
+            
+            // Check if division table exists and has data
+            if (tableExists(connection, "division")) {
+                // Check if it has data
+                try (Statement stmt = connection.createStatement();
+                     ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as count FROM division")) {
+                    if (rs.next() && rs.getInt("count") > 0) {
+                        System.out.println("Database already initialized with data. Skipping initialization.");
+                        return true;
+                    }
+                }
+            }
+            
+            // If we get here, we need to initialize
+            System.out.println("Database needs initialization. Starting...");
+            return initialize();
+            
+        } catch (SQLException e) {
+            System.err.println("Error checking database state: " + e.getMessage());
+            e.printStackTrace();
+            // Try to initialize anyway
+            return initialize();
+        } finally {
+            if (connection != null) {
+                dbManager.closeConnection(connection);
+            }
+        }
+    }
+
+    /**
      * Initializes the database by executing schema and sample data files.
      * 
      * @return true if initialization was successful, false otherwise

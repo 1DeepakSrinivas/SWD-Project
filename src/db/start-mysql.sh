@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Script to start MySQL server using configuration from .env file
-# Usage: ./start-mysql.sh
+# Usage: 
+#   ./start-mysql.sh           - Start MySQL server
+#   ./start-mysql.sh --init    - Start MySQL and initialize database with schema and sample data
 
 # Get the project root directory (parent of src)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -88,8 +90,75 @@ start_with_mysqld_safe() {
     return 1
 }
 
+# Function to initialize database
+initialize_database() {
+    echo ""
+    echo "========================================="
+    echo "Initializing Database"
+    echo "========================================="
+    echo ""
+    
+    # Check if database exists, create if not
+    echo "Checking if database '$DB_NAME' exists..."
+    if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" ${DB_PASS:+-p"$DB_PASS"} -e "USE $DB_NAME;" &> /dev/null; then
+        echo "✓ Database '$DB_NAME' exists."
+    else
+        echo "Creating database '$DB_NAME'..."
+        if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" ${DB_PASS:+-p"$DB_PASS"} -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;" &> /dev/null; then
+            echo "✓ Database '$DB_NAME' created successfully."
+        else
+            echo "✗ Failed to create database '$DB_NAME'."
+            exit 1
+        fi
+    fi
+    
+    # Execute schema file
+    SCHEMA_FILE="$SCRIPT_DIR/schema.sql"
+    if [ -f "$SCHEMA_FILE" ]; then
+        echo ""
+        echo "Executing schema file..."
+        if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" ${DB_PASS:+-p"$DB_PASS"} "$DB_NAME" < "$SCHEMA_FILE" 2>&1 | grep -v "Using a password on the command line"; then
+            echo "✓ Schema executed successfully."
+        else
+            echo "✗ Failed to execute schema."
+            exit 1
+        fi
+    else
+        echo "✗ Schema file not found: $SCHEMA_FILE"
+        exit 1
+    fi
+    
+    # Execute sample data file
+    SAMPLE_DATA_FILE="$SCRIPT_DIR/sample-data.sql"
+    if [ -f "$SAMPLE_DATA_FILE" ]; then
+        echo ""
+        echo "Loading sample data..."
+        if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" ${DB_PASS:+-p"$DB_PASS"} "$DB_NAME" < "$SAMPLE_DATA_FILE" 2>&1 | grep -v "Using a password on the command line"; then
+            echo "✓ Sample data loaded successfully."
+        else
+            echo "✗ Failed to load sample data."
+            exit 1
+        fi
+    else
+        echo "✗ Sample data file not found: $SAMPLE_DATA_FILE"
+        exit 1
+    fi
+    
+    echo ""
+    echo "========================================="
+    echo "✓ Database initialization complete!"
+    echo "========================================="
+    echo ""
+}
+
 # Main execution
 main() {
+    # Check for --init flag
+    INIT_DB=false
+    if [ "$1" = "--init" ]; then
+        INIT_DB=true
+    fi
+    
     echo "========================================="
     echo "MySQL Server Startup Script"
     echo "========================================="
@@ -115,6 +184,11 @@ main() {
         echo "Testing connection..."
         if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" ${DB_PASS:+-p"$DB_PASS"} -e "SELECT 1;" &> /dev/null; then
             echo "✓ Connection successful!"
+            
+            # Initialize database if --init flag was provided
+            if [ "$INIT_DB" = true ]; then
+                initialize_database
+            fi
         else
             echo "✗ Connection failed. Please check your credentials."
             exit 1
@@ -141,6 +215,11 @@ main() {
                 echo "✓ MySQL server started successfully!"
                 echo ""
                 echo "Server is running on $DB_HOST:$DB_PORT"
+                
+                # Initialize database if --init flag was provided
+                if [ "$INIT_DB" = true ]; then
+                    initialize_database
+                fi
                 exit 0
             fi
             sleep 1
@@ -159,6 +238,11 @@ main() {
                 echo "✓ MySQL server started successfully!"
                 echo ""
                 echo "Server is running on $DB_HOST:$DB_PORT"
+                
+                # Initialize database if --init flag was provided
+                if [ "$INIT_DB" = true ]; then
+                    initialize_database
+                fi
                 exit 0
             fi
             sleep 1
@@ -177,6 +261,11 @@ main() {
                 echo "✓ MySQL server started successfully!"
                 echo ""
                 echo "Server is running on $DB_HOST:$DB_PORT"
+                
+                # Initialize database if --init flag was provided
+                if [ "$INIT_DB" = true ]; then
+                    initialize_database
+                fi
                 exit 0
             fi
             sleep 1
@@ -198,5 +287,5 @@ main() {
 }
 
 # Run main function
-main
+main "$@"
 

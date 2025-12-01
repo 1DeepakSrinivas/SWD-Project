@@ -1,6 +1,7 @@
 package com.employeemgmt.ui;
 
 import com.employeemgmt.dao.*;
+import com.employeemgmt.db.DatabaseInit;
 import com.employeemgmt.service.EmployeeService;
 import com.employeemgmt.service.ReportService;
 import com.employeemgmt.ui.fx.controller.NavigationManager;
@@ -12,6 +13,15 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Initialize database (creates tables and loads sample data if needed)
+        System.out.println("Checking database initialization...");
+        DatabaseInit dbInit = new DatabaseInit();
+        if (dbInit.initializeIfNeeded()) {
+            System.out.println("Database ready.");
+        } else {
+            System.err.println("Warning: Database initialization had issues, but continuing...");
+        }
+
         // Build DAO layer (your existing backend)
         EmployeeDAO employeeDAO = new EmployeeDAOImpl();
         DivisionDAO divisionDAO = new DivisionDAOImpl();

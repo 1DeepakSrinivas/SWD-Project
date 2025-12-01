@@ -16,7 +16,7 @@ public class ReportsController extends BaseController {
     @FXML private ComboBox<Integer> cmbYear;
     @FXML private ComboBox<Integer> cmbMonth;
     @FXML private TableView<Map.Entry<String, BigDecimal>> tblJob;
-    @FXML private TableColumn<Map.Entry<String, BigDecimal>,String> colJobName;
+    @FXML private TableColumn<Map.Entry<String, BigDecimal>,String> jobNameColumn;
     @FXML private TableColumn<Map.Entry<String, BigDecimal>,BigDecimal> colJobTotal;
 
     @FXML private TableView<Map.Entry<String, BigDecimal>> tblDiv;
@@ -31,7 +31,7 @@ public class ReportsController extends BaseController {
         cmbYear.setValue(y);
         cmbMonth.setValue(YearMonth.now().getMonthValue());
 
-        colJobName.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getKey()));
+        jobNameColumn.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getKey()));
         colJobTotal.setCellValueFactory(v-> new javafx.beans.property.SimpleObjectProperty<>(v.getValue().getValue()));
 
         colDivName.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getKey()));

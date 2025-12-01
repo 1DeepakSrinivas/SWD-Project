@@ -34,8 +34,7 @@ public class Employee {
     }
 
     public void setEmployeeId(Integer employeeId) {
-        this.email = (email == null) ? null : email.trim();
-
+        this.employeeId = employeeId;
     }
 
     public String getFirstName() {

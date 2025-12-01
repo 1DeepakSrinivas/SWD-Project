@@ -28,6 +28,53 @@ public class EmployeeFormController extends BaseController {
         try{
             cmbDivision.setItems(FXCollections.observableList(ServiceRegistry.employees().getAllDivisions()));
             cmbJob.setItems(FXCollections.observableList(ServiceRegistry.employees().getAllJobTitles()));
+            
+            // Set custom cell factories to display only the name/title
+            cmbDivision.setButtonCell(new javafx.scene.control.ListCell<Division>() {
+                @Override
+                protected void updateItem(Division item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName());
+                    }
+                }
+            });
+            cmbDivision.setCellFactory(lv -> new javafx.scene.control.ListCell<Division>() {
+                @Override
+                protected void updateItem(Division item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName());
+                    }
+                }
+            });
+            
+            cmbJob.setButtonCell(new javafx.scene.control.ListCell<JobTitle>() {
+                @Override
+                protected void updateItem(JobTitle item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getTitle());
+                    }
+                }
+            });
+            cmbJob.setCellFactory(lv -> new javafx.scene.control.ListCell<JobTitle>() {
+                @Override
+                protected void updateItem(JobTitle item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getTitle());
+                    }
+                }
+            });
         }catch(SQLException e){ error("Failed loading lookups",e); }
     }
 
@@ -47,6 +94,16 @@ public class EmployeeFormController extends BaseController {
     @FXML
     private void onSave(){
         try{
+            // Validate required dropdown selections
+            if (cmbDivision.getValue() == null) {
+                info("Please select a Division before saving.");
+                return;
+            }
+            if (cmbJob.getValue() == null) {
+                info("Please select a Job Title before saving.");
+                return;
+            }
+
             if(editing == null){
                 Employee e = new Employee(txtFirst.getText(), txtLast.getText(),
                         txtSSN.getText(), txtEmail.getText());
