@@ -34,9 +34,6 @@ public class Employee {
     }
 
     public void setEmployeeId(Integer employeeId) {
-        if (employeeId != null && employeeId < 0) {
-            throw new IllegalArgumentException("Employee ID must be non-negative");
-        }
         this.employeeId = employeeId;
     }
 
