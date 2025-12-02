@@ -29,6 +29,10 @@
             onAction="#onEditEmployee"
             maxWidth="Infinity"/>
 
+    <Button text="Employee Pay History"
+            onAction="#onEmployeePayHistory"
+            maxWidth="Infinity"/>
+
     <Button text="Reports"
             onAction="#onReports"
             maxWidth="Infinity"/>

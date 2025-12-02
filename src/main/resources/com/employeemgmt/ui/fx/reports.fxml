@@ -42,31 +42,11 @@
 
     <Label text="Total Pay by Division:" style="-fx-font-weight: bold;"/>
 
-    <TableView fx:id="tblDiv" prefHeight="160">
+    <TableView fx:id="tblDiv" prefHeight="200">
         <columns>
             <TableColumn fx:id="colDivName" text="Division" prefWidth="250"/>
             <TableColumn fx:id="colDivTotal" text="Total Pay" prefWidth="150"/>
         </columns>
     </TableView>
-
-    <Label text="Employee FTE Info + Pay History:" style="-fx-font-weight: bold;"/>
-
-    <HBox spacing="8" alignment="CENTER_LEFT">
-        <Label text="Search (ID, Name, or SSN):"/>
-        <TextField fx:id="txtEmpSearch" promptText="e.g. 1 or John or 123456789" HBox.hgrow="ALWAYS"/>
-        <Button text="Search" onAction="#onSearchEmployee"/>
-    </HBox>
-
-    <Label fx:id="lblEmpInfo" text="No employee selected." wrapText="true"/>
-
-    <TableView fx:id="tblEmpHistory" prefHeight="220">
-        <columns>
-            <TableColumn fx:id="colHistStart" text="Period Start" prefWidth="110"/>
-            <TableColumn fx:id="colHistEnd" text="Period End" prefWidth="110"/>
-            <TableColumn fx:id="colHistAmount" text="Amount" prefWidth="100"/>
-        </columns>
-    </TableView>
-
-
 
 </VBox>

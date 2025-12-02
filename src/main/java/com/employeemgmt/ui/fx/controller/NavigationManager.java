@@ -69,6 +69,10 @@ public class NavigationManager {
         }
     }
 
+    public static void showEmployeePayHistory() {
+        show("employee_pay_history.fxml", "Employee Management - Employee Pay History");
+    }
+
     public static void showReports() {
         show("reports.fxml", "Employee Management - Reports");
     }

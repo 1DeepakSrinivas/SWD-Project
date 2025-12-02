@@ -15,6 +15,11 @@ public class MainMenuController extends BaseController {
     }
 
     @FXML
+    private void onEmployeePayHistory(){
+        NavigationManager.showEmployeePayHistory();
+    }
+
+    @FXML
     private void onEditEmployee(){
         NavigationManager.showEditEmployee();
     }
