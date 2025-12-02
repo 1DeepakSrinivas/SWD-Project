@@ -48,4 +48,18 @@
         </columns>
     </TableView>
 
+    <Label text="Employee FTE Info + Pay History:" style="-fx-font-weight: bold;"/>
+
+    <TableView fx:id="tblEmp" prefHeight="220">
+        <columns>
+            <TableColumn fx:id="colEmpName" text="Employee" prefWidth="200"/>
+            <TableColumn fx:id="colEmpDivision" text="Division" prefWidth="150"/>
+            <TableColumn fx:id="colEmpJobTitle" text="Job Title" prefWidth="150"/>
+            <TableColumn fx:id="colEmpStart" text="Period Start" prefWidth="110"/>
+            <TableColumn fx:id="colEmpEnd" text="Period End" prefWidth="110"/>
+            <TableColumn fx:id="colEmpAmount" text="Amount" prefWidth="100"/>
+        </columns>
+    </TableView>
+
+
 </VBox>
