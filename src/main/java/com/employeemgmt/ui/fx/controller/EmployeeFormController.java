@@ -84,6 +84,26 @@ public class EmployeeFormController extends BaseController {
         txtLast.setText(emp.getLastName());
         txtEmail.setText(emp.getEmail());
         txtSSN.setText(emp.getSsn());
+        
+        // Set division if available
+        if (emp.getDivisionName() != null) {
+            for (Division div : cmbDivision.getItems()) {
+                if (div.getName().equals(emp.getDivisionName())) {
+                    cmbDivision.setValue(div);
+                    break;
+                }
+            }
+        }
+        
+        // Set job title if available
+        if (emp.getJobTitleName() != null) {
+            for (JobTitle job : cmbJob.getItems()) {
+                if (job.getTitle().equals(emp.getJobTitleName())) {
+                    cmbJob.setValue(job);
+                    break;
+                }
+            }
+        }
     }
 
     public void editEmployee(Employee emp) {

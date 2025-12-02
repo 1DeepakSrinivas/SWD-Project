@@ -15,6 +15,11 @@ public class MainMenuController extends BaseController {
     }
 
     @FXML
+    private void onEditEmployee(){
+        NavigationManager.showEditEmployee();
+    }
+
+    @FXML
     private void onReports(){
         NavigationManager.showReports();
     }

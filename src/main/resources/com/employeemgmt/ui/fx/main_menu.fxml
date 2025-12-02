@@ -25,6 +25,10 @@
             onAction="#onAddEmployee"
             maxWidth="Infinity"/>
 
+    <Button text="Edit Employee"
+            onAction="#onEditEmployee"
+            maxWidth="Infinity"/>
+
     <Button text="Reports"
             onAction="#onReports"
             maxWidth="Infinity"/>
