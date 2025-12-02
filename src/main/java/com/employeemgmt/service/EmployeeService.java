@@ -90,7 +90,36 @@ public class EmployeeService {
     // --- Update / delete ---
 
     public boolean updateEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
-        return employeeDAO.update(employee);
+        if (employee.getEmployeeId() == null) {
+            throw new IllegalArgumentException("Employee ID is required for update");
+        }
+
+        // Update employee basic info
+        boolean updated = employeeDAO.update(employee);
+
+        if (updated) {
+            // Update division relationship
+            List<EmployeeDivision> existingDivisions = employeeDivisionDAO.findByEmployeeId(employee.getEmployeeId());
+            if (!existingDivisions.isEmpty()) {
+                // Delete existing division relationship
+                employeeDivisionDAO.delete(employee.getEmployeeId(), existingDivisions.get(0).getDivisionId());
+            }
+            // Insert new division relationship
+            EmployeeDivision newDivision = new EmployeeDivision(employee.getEmployeeId(), divisionId);
+            employeeDivisionDAO.insert(newDivision);
+
+            // Update job title relationship
+            List<EmployeeJobTitle> existingJobTitles = employeeJobTitleDAO.findByEmployeeId(employee.getEmployeeId());
+            if (!existingJobTitles.isEmpty()) {
+                // Delete existing job title relationship
+                employeeJobTitleDAO.delete(employee.getEmployeeId(), existingJobTitles.get(0).getJobTitleId());
+            }
+            // Insert new job title relationship
+            EmployeeJobTitle newJobTitle = new EmployeeJobTitle(employee.getEmployeeId(), jobTitleId);
+            employeeJobTitleDAO.insert(newJobTitle);
+        }
+
+        return updated;
     }
 
     public boolean deleteEmployee(int employeeId) throws SQLException {
