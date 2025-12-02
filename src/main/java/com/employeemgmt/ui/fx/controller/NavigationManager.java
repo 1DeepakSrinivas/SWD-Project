@@ -50,7 +50,23 @@ public class NavigationManager {
     }
 
     public static void showAddEmployee() {
-        show("employee_from.fxml", "Employee Management - Add / Edit Employee");
+        show("employee_from.fxml", "Employee Management - Add Employee");
+    }
+
+    public static void showEditEmployee() {
+        try {
+            URL resource = NavigationManager.class.getResource(BASE_FXML_PATH + "edit_employee.fxml");
+            if (resource == null) {
+                throw new IllegalStateException("FXML not found: " + BASE_FXML_PATH + "edit_employee.fxml");
+            }
+            FXMLLoader loader = new FXMLLoader(resource);
+            Parent root = loader.load();
+            Scene scene = new Scene(root, 650, 600);
+            stage.setTitle("Employee Management - Edit Employee");
+            stage.setScene(scene);
+        } catch (IOException e) {
+            error("Failed to load edit_employee.fxml", e);
+        }
     }
 
     public static void showReports() {
