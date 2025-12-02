@@ -38,7 +38,21 @@ public class EmployeeService {
 
     // --- Create employee ---
     public Employee addEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
-        return employeeDAO.insert(employee);
+        Employee inserted = employeeDAO.insert(employee);
+
+        if (inserted.getEmployeeId() == null) {
+            throw new SQLException("Failed to obtain generated employee ID after insert");
+        }
+
+        EmployeeDivision newDivision = new EmployeeDivision(inserted.getEmployeeId(), divisionId);
+        employeeDivisionDAO.insert(newDivision);
+
+        EmployeeJobTitle newJobTitle = new EmployeeJobTitle(inserted.getEmployeeId(), jobTitleId);
+        employeeJobTitleDAO.insert(newJobTitle);
+
+        enrichEmployeeWithDivisionAndJobTitle(inserted);
+
+        return inserted;
     }
 
     // --- Lookups ---
