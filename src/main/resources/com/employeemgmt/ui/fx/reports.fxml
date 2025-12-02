@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.TextField?>
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.employeemgmt.ui.fx.controller.ReportsController"
@@ -50,16 +51,22 @@
 
     <Label text="Employee FTE Info + Pay History:" style="-fx-font-weight: bold;"/>
 
-    <TableView fx:id="tblEmp" prefHeight="220">
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Search (ID, Name, or SSN):"/>
+        <TextField fx:id="txtEmpSearch" promptText="e.g. 1 or John or 123456789" HBox.hgrow="ALWAYS"/>
+        <Button text="Search" onAction="#onSearchEmployee"/>
+    </HBox>
+
+    <Label fx:id="lblEmpInfo" text="No employee selected." wrapText="true"/>
+
+    <TableView fx:id="tblEmpHistory" prefHeight="220">
         <columns>
-            <TableColumn fx:id="colEmpName" text="Employee" prefWidth="200"/>
-            <TableColumn fx:id="colEmpDivision" text="Division" prefWidth="150"/>
-            <TableColumn fx:id="colEmpJobTitle" text="Job Title" prefWidth="150"/>
-            <TableColumn fx:id="colEmpStart" text="Period Start" prefWidth="110"/>
-            <TableColumn fx:id="colEmpEnd" text="Period End" prefWidth="110"/>
-            <TableColumn fx:id="colEmpAmount" text="Amount" prefWidth="100"/>
+            <TableColumn fx:id="colHistStart" text="Period Start" prefWidth="110"/>
+            <TableColumn fx:id="colHistEnd" text="Period End" prefWidth="110"/>
+            <TableColumn fx:id="colHistAmount" text="Amount" prefWidth="100"/>
         </columns>
     </TableView>
+
 
 
 </VBox>
