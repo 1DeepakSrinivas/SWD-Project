@@ -48,19 +48,24 @@ public class EmployeeService {
     // --- Create employee ---
     public Employee addEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
         // Insert the employee first to get the generated employee ID
-        Employee insertedEmployee = employeeDAO.insert(employee);
-        
-        // Create division relationship
-        if (insertedEmployee.getEmployeeId() != null) {
-            EmployeeDivision employeeDivision = new EmployeeDivision(insertedEmployee.getEmployeeId(), divisionId);
-            employeeDivisionDAO.insert(employeeDivision);
-            
-            // Create job title relationship
-            EmployeeJobTitle employeeJobTitle = new EmployeeJobTitle(insertedEmployee.getEmployeeId(), jobTitleId);
-            employeeJobTitleDAO.insert(employeeJobTitle);
+        Employee inserted = employeeDAO.insert(employee);
+
+        if (inserted.getEmployeeId() == null) {
+            throw new SQLException("Failed to obtain generated employee ID after insert");
         }
-        
-        return insertedEmployee;
+
+        // Create division relationship
+        EmployeeDivision newDivision = new EmployeeDivision(inserted.getEmployeeId(), divisionId);
+        employeeDivisionDAO.insert(newDivision);
+
+        // Create job title relationship
+        EmployeeJobTitle newJobTitle = new EmployeeJobTitle(inserted.getEmployeeId(), jobTitleId);
+        employeeJobTitleDAO.insert(newJobTitle);
+
+        // Enrich employee with division and job title names for immediate display
+        enrichEmployeeWithDivisionAndJobTitle(inserted);
+
+        return inserted;
     }
 
     // --- Lookups ---
