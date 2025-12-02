@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.employeemgmt.ui.ReportRow;
 
 public class ReportService {
 
@@ -101,6 +102,90 @@ public class ReportService {
 
         return totals;
     }
+
+    /**
+     * Employee FTE info + pay history for a given month.
+     * One row per payroll entry for that month, with employee/division/job metadata.
+     */
+    public List<ReportRow> getEmployeePayForMonth(int year, int month) throws SQLException {
+        List<Payroll> payrolls = getPayrollsForMonth(year, month);
+
+        Map<Integer, Employee> employeeMap = employeeDAO.findAll()
+                .stream()
+                .collect(Collectors.toMap(Employee::getEmployeeId, e -> e));
+
+        Map<Integer, Integer> empToDivisionId = employeeDivisionDAO.findAll()
+                .stream()
+                .collect(Collectors.toMap(
+                        EmployeeDivision::getEmployeeId,
+                        EmployeeDivision::getDivisionId
+                ));
+
+        Map<Integer, Division> divisionMap = divisionDAO.findAll()
+                .stream()
+                .collect(Collectors.toMap(Division::getDivisionId, d -> d));
+
+        Map<Integer, Integer> empToJobTitleId = employeeJobTitleDAO.findAll()
+                .stream()
+                .collect(Collectors.toMap(
+                        EmployeeJobTitle::getEmployeeId,
+                        EmployeeJobTitle::getJobTitleId
+                ));
+
+        Map<Integer, JobTitle> jobTitleMap = jobTitleDAO.findAll()
+                .stream()
+                .collect(Collectors.toMap(JobTitle::getJobTitleId, jt -> jt));
+
+        List<ReportRow> rows = new ArrayList<>();
+
+        for (Payroll p : payrolls) {
+            Integer empId = p.getEmployeeId();
+            if (empId == null) {
+                continue;
+            }
+
+            Employee emp = employeeMap.get(empId);
+            String employeeName;
+            if (emp != null) {
+                employeeName = String.format("%s %s",
+                        emp.getFirstName() != null ? emp.getFirstName() : "",
+                        emp.getLastName() != null ? emp.getLastName() : "").trim();
+            } else {
+                employeeName = "Employee #" + empId;
+            }
+
+            String divisionName = "";
+            Integer divId = empToDivisionId.get(empId);
+            if (divId != null) {
+                Division d = divisionMap.get(divId);
+                if (d != null && d.getName() != null) {
+                    divisionName = d.getName();
+                }
+            }
+
+            String jobTitleName = "";
+            Integer jobId = empToJobTitleId.get(empId);
+            if (jobId != null) {
+                JobTitle jt = jobTitleMap.get(jobId);
+                if (jt != null && jt.getTitle() != null) {
+                    jobTitleName = jt.getTitle();
+                }
+            }
+
+            ReportRow row = new ReportRow();
+            row.setEmployeeId(empId);
+            row.setEmployeeName(employeeName);
+            row.setDivisionName(divisionName);
+            row.setJobTitle(jobTitleName);
+            row.setPayPeriodStart(p.getPayPeriodStart());
+            row.setPayPeriodEnd(p.getPayPeriodEnd());
+            row.setAmount(p.getAmount());
+
+            rows.add(row);
+        }
+        return rows;
+    }
+
 
     // --------------------------------------------------------------------
     // 3) Total pay by Division (for a month)
