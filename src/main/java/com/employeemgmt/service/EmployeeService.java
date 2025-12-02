@@ -2,9 +2,13 @@ package com.employeemgmt.service;
 
 import com.employeemgmt.dao.DivisionDAO;
 import com.employeemgmt.dao.EmployeeDAO;
+import com.employeemgmt.dao.EmployeeDivisionDAO;
+import com.employeemgmt.dao.EmployeeJobTitleDAO;
 import com.employeemgmt.dao.JobTitleDAO;
 import com.employeemgmt.model.Division;
 import com.employeemgmt.model.Employee;
+import com.employeemgmt.model.EmployeeDivision;
+import com.employeemgmt.model.EmployeeJobTitle;
 import com.employeemgmt.model.JobTitle;
 
 import java.math.BigDecimal;
@@ -17,13 +21,19 @@ public class EmployeeService {
     private final EmployeeDAO employeeDAO;
     private final DivisionDAO divisionDAO;
     private final JobTitleDAO jobTitleDAO;
+    private final EmployeeDivisionDAO employeeDivisionDAO;
+    private final EmployeeJobTitleDAO employeeJobTitleDAO;
 
     public EmployeeService(EmployeeDAO employeeDAO,
                            DivisionDAO divisionDAO,
-                           JobTitleDAO jobTitleDAO) {
+                           JobTitleDAO jobTitleDAO,
+                           EmployeeDivisionDAO employeeDivisionDAO,
+                           EmployeeJobTitleDAO employeeJobTitleDAO) {
         this.employeeDAO = employeeDAO;
         this.divisionDAO = divisionDAO;
         this.jobTitleDAO = jobTitleDAO;
+        this.employeeDivisionDAO = employeeDivisionDAO;
+        this.employeeJobTitleDAO = employeeJobTitleDAO;
     }
 
     // --- Create employee ---
@@ -34,15 +44,47 @@ public class EmployeeService {
     // --- Lookups ---
 
     public Optional<Employee> findById(int id) throws SQLException {
-        return employeeDAO.findById(id);
+        Optional<Employee> employee = employeeDAO.findById(id);
+        if (employee.isPresent()) {
+            enrichEmployeeWithDivisionAndJobTitle(employee.get());
+        }
+        return employee;
     }
 
     public Optional<Employee> findBySSN(String ssn) throws SQLException {
-        return employeeDAO.findBySSN(ssn);
+        Optional<Employee> employee = employeeDAO.findBySSN(ssn);
+        if (employee.isPresent()) {
+            enrichEmployeeWithDivisionAndJobTitle(employee.get());
+        }
+        return employee;
     }
 
     public List<Employee> findByNameFragment(String fragment) throws SQLException {
-        return employeeDAO.searchByName(fragment);
+        List<Employee> employees = employeeDAO.searchByName(fragment);
+        for (Employee employee : employees) {
+            enrichEmployeeWithDivisionAndJobTitle(employee);
+        }
+        return employees;
+    }
+
+    private void enrichEmployeeWithDivisionAndJobTitle(Employee employee) throws SQLException {
+        if (employee.getEmployeeId() == null) {
+            return;
+        }
+
+        List<EmployeeDivision> employeeDivisions = employeeDivisionDAO.findByEmployeeId(employee.getEmployeeId());
+        if (!employeeDivisions.isEmpty()) {
+            EmployeeDivision empDiv = employeeDivisions.get(0);
+            Optional<Division> division = divisionDAO.findById(empDiv.getDivisionId());
+            division.ifPresent(d -> employee.setDivisionName(d.getName()));
+        }
+
+        List<EmployeeJobTitle> employeeJobTitles = employeeJobTitleDAO.findByEmployeeId(employee.getEmployeeId());
+        if (!employeeJobTitles.isEmpty()) {
+            EmployeeJobTitle empJob = employeeJobTitles.get(0);
+            Optional<JobTitle> jobTitle = jobTitleDAO.findById(empJob.getJobTitleId());
+            jobTitle.ifPresent(jt -> employee.setJobTitleName(jt.getTitle()));
+        }
     }
 
     // --- Update / delete ---

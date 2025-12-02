@@ -23,6 +23,8 @@ public class EmployeeSearchController extends BaseController {
     @FXML private TableColumn<Employee, String> colLast;
     @FXML private TableColumn<Employee, String> colSsn;
     @FXML private TableColumn<Employee, String> colEmail;
+    @FXML private TableColumn<Employee, String> colDivision;
+    @FXML private TableColumn<Employee, String> colJobTitle;
 
     private final ObservableList<Employee> data = FXCollections.observableArrayList();
 
@@ -36,6 +38,10 @@ public class EmployeeSearchController extends BaseController {
         colLast.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getLastName()));
         colSsn.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getSsn()));
         colEmail.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(v.getValue().getEmail()));
+        colDivision.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(
+            v.getValue().getDivisionName() != null ? v.getValue().getDivisionName() : ""));
+        colJobTitle.setCellValueFactory(v-> new javafx.beans.property.SimpleStringProperty(
+            v.getValue().getJobTitleName() != null ? v.getValue().getJobTitleName() : ""));
 
         table.setItems(data);
     }

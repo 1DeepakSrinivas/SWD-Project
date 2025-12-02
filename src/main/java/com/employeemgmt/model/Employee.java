@@ -13,6 +13,8 @@ public class Employee {
     private String lastName;
     private String ssn;
     private String email;
+    private String divisionName;
+    private String jobTitleName;
 
     public Employee() {
     }
@@ -73,6 +75,22 @@ public class Employee {
             throw new IllegalArgumentException("Invalid email format");
         }
         this.email = email;
+    }
+
+    public String getDivisionName() {
+        return divisionName;
+    }
+
+    public void setDivisionName(String divisionName) {
+        this.divisionName = divisionName;
+    }
+
+    public String getJobTitleName() {
+        return jobTitleName;
+    }
+
+    public void setJobTitleName(String jobTitleName) {
+        this.jobTitleName = jobTitleName;
     }
 
     @Override
