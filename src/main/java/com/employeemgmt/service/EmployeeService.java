@@ -192,14 +192,15 @@ public class EmployeeService {
             }
             
             // Calculate next pay period
-            // Start date is the end date of the last period
-            LocalDate nextPeriodStart = latestPayroll.getPayPeriodEnd();
+            // Start date is the day after the last period ends (to avoid overlap)
+            LocalDate nextPeriodStart = latestPayroll.getPayPeriodEnd().plusDays(1);
             
-            // Calculate the duration of the last period
-            long daysBetween = ChronoUnit.DAYS.between(latestPayroll.getPayPeriodStart(), latestPayroll.getPayPeriodEnd());
+            // Calculate the duration of the last period (inclusive of both endpoints)
+            // ChronoUnit.DAYS.between() returns exclusive count, so add 1 for inclusive duration
+            long daysBetween = ChronoUnit.DAYS.between(latestPayroll.getPayPeriodStart(), latestPayroll.getPayPeriodEnd()) + 1;
             
-            // End date is start + same duration
-            LocalDate nextPeriodEnd = nextPeriodStart.plusDays(daysBetween);
+            // End date is start + same duration (inclusive) - subtract 1 because both start and end are inclusive
+            LocalDate nextPeriodEnd = nextPeriodStart.plusDays(daysBetween - 1);
             
             // Calculate new amount with increase
             BigDecimal newAmount = latestPayroll.getAmount().multiply(increaseFactor);
