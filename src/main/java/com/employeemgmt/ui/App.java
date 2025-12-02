@@ -36,7 +36,8 @@ public class App extends Application {
                 divisionDAO,
                 jobTitleDAO,
                 employeeDivisionDAO,
-                employeeJobTitleDAO
+                employeeJobTitleDAO,
+                payrollDAO
         );
 
         ReportService reportService = new ReportService(

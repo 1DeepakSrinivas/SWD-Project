@@ -83,6 +83,13 @@ final class SQLConstants {
             WHERE employee_id = ?
             ORDER BY pay_period_start DESC
             """;
+
+        static final String FIND_BY_AMOUNT_RANGE = """
+            SELECT payroll_id, employee_id, amount, pay_period_start, pay_period_end
+            FROM payroll
+            WHERE amount BETWEEN ? AND ?
+            ORDER BY employee_id, pay_period_start DESC
+            """;
     }
 
     static final class Division {

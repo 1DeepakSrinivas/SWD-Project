@@ -124,6 +124,27 @@ public class PayrollDAOImpl implements PayrollDAO {
         return payrolls;
     }
 
+    @Override
+    public List<Payroll> findByAmountRange(java.math.BigDecimal min, java.math.BigDecimal max) throws SQLException {
+        String sql = SQLConstants.Payroll.FIND_BY_AMOUNT_RANGE;
+        List<Payroll> payrolls = new ArrayList<>();
+
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setBigDecimal(1, min);
+            ps.setBigDecimal(2, max);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    payrolls.add(mapResultSetToPayroll(rs));
+                }
+            }
+        }
+
+        return payrolls;
+    }
+
     private Payroll mapResultSetToPayroll(ResultSet rs) throws SQLException {
         Payroll payroll = new Payroll();
         payroll.setPayrollId(rs.getInt("payroll_id"));

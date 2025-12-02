@@ -5,15 +5,21 @@ import com.employeemgmt.dao.EmployeeDAO;
 import com.employeemgmt.dao.EmployeeDivisionDAO;
 import com.employeemgmt.dao.EmployeeJobTitleDAO;
 import com.employeemgmt.dao.JobTitleDAO;
+import com.employeemgmt.dao.PayrollDAO;
 import com.employeemgmt.model.Division;
 import com.employeemgmt.model.Employee;
 import com.employeemgmt.model.EmployeeDivision;
 import com.employeemgmt.model.EmployeeJobTitle;
 import com.employeemgmt.model.JobTitle;
+import com.employeemgmt.model.Payroll;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class EmployeeService {
@@ -23,22 +29,38 @@ public class EmployeeService {
     private final JobTitleDAO jobTitleDAO;
     private final EmployeeDivisionDAO employeeDivisionDAO;
     private final EmployeeJobTitleDAO employeeJobTitleDAO;
+    private final PayrollDAO payrollDAO;
 
     public EmployeeService(EmployeeDAO employeeDAO,
                            DivisionDAO divisionDAO,
                            JobTitleDAO jobTitleDAO,
                            EmployeeDivisionDAO employeeDivisionDAO,
-                           EmployeeJobTitleDAO employeeJobTitleDAO) {
+                           EmployeeJobTitleDAO employeeJobTitleDAO,
+                           PayrollDAO payrollDAO) {
         this.employeeDAO = employeeDAO;
         this.divisionDAO = divisionDAO;
         this.jobTitleDAO = jobTitleDAO;
         this.employeeDivisionDAO = employeeDivisionDAO;
         this.employeeJobTitleDAO = employeeJobTitleDAO;
+        this.payrollDAO = payrollDAO;
     }
 
     // --- Create employee ---
     public Employee addEmployee(Employee employee, int divisionId, int jobTitleId) throws SQLException {
-        return employeeDAO.insert(employee);
+        // Insert the employee first to get the generated employee ID
+        Employee insertedEmployee = employeeDAO.insert(employee);
+        
+        // Create division relationship
+        if (insertedEmployee.getEmployeeId() != null) {
+            EmployeeDivision employeeDivision = new EmployeeDivision(insertedEmployee.getEmployeeId(), divisionId);
+            employeeDivisionDAO.insert(employeeDivision);
+            
+            // Create job title relationship
+            EmployeeJobTitle employeeJobTitle = new EmployeeJobTitle(insertedEmployee.getEmployeeId(), jobTitleId);
+            employeeJobTitleDAO.insert(employeeJobTitle);
+        }
+        
+        return insertedEmployee;
     }
 
     // --- Lookups ---
@@ -129,7 +151,67 @@ public class EmployeeService {
     // --- Salary update in range ---
 
     public int increaseSalaryInRange(BigDecimal min, BigDecimal max, BigDecimal percentage) throws SQLException {
-        return employeeDAO.updateSalaryByPercentage(percentage.doubleValue(), min, max);
+        // Find all payroll records in the specified salary range
+        List<Payroll> payrollsInRange = payrollDAO.findByAmountRange(min, max);
+        
+        if (payrollsInRange.isEmpty()) {
+            return 0;
+        }
+        
+        // Group by employee and find the latest payroll entry for each employee
+        Map<Integer, Payroll> latestPayrollByEmployee = new HashMap<>();
+        for (Payroll payroll : payrollsInRange) {
+            Integer employeeId = payroll.getEmployeeId();
+            if (employeeId == null || payroll.getPayPeriodStart() == null) {
+                continue;
+            }
+            
+            Payroll existing = latestPayrollByEmployee.get(employeeId);
+            if (existing == null || 
+                (existing.getPayPeriodStart() != null &&
+                 payroll.getPayPeriodStart().isAfter(existing.getPayPeriodStart()))) {
+                latestPayrollByEmployee.put(employeeId, payroll);
+            }
+        }
+        
+        // Calculate the increase factor
+        BigDecimal increaseFactor = BigDecimal.ONE.add(percentage.divide(new BigDecimal("100")));
+        int createdCount = 0;
+        
+        // Create new payroll entries for each affected employee
+        for (Map.Entry<Integer, Payroll> entry : latestPayrollByEmployee.entrySet()) {
+            Payroll latestPayroll = entry.getValue();
+            
+            if (latestPayroll.getPayPeriodStart() == null || latestPayroll.getPayPeriodEnd() == null) {
+                continue;
+            }
+            
+            // Calculate next pay period
+            // Start date is the end date of the last period
+            LocalDate nextPeriodStart = latestPayroll.getPayPeriodEnd();
+            
+            // Calculate the duration of the last period
+            long daysBetween = ChronoUnit.DAYS.between(latestPayroll.getPayPeriodStart(), latestPayroll.getPayPeriodEnd());
+            
+            // End date is start + same duration
+            LocalDate nextPeriodEnd = nextPeriodStart.plusDays(daysBetween);
+            
+            // Calculate new amount with increase
+            BigDecimal newAmount = latestPayroll.getAmount().multiply(increaseFactor);
+            
+            // Create new payroll entry
+            Payroll newPayroll = new Payroll(
+                entry.getKey(),  // employeeId
+                newAmount,
+                nextPeriodStart,
+                nextPeriodEnd
+            );
+            
+            payrollDAO.insert(newPayroll);
+            createdCount++;
+        }
+        
+        return createdCount;
     }
 
     // --- For UI dropdowns ---
